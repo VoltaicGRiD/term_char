@@ -1,0 +1,43 @@
+body {
+    height: 100%;
+    width: 100%;
+    margin: 0px;
+    overflow: hidden;
+}
+
+.bodycontent {
+    width: 100%;
+    height: 100%;
+}
+
+.popout {
+    background-color: #273644;
+    display: none;
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    top: 10%;
+    left: 10%;
+    border: 0.6rem double #4fd6be;
+}
+
+.popout > div {
+    width: 100%;
+    height: 100%;
+}
+
+.popout span {
+    color: white;
+}
+
+.cmd span[data-text]:not(.emoji):not(.fa):not(.fas):not(.far) span {
+    background-color: inherit;
+    color: white;
+}
+
+.terminal, .cmd, .terminal .terminal-output div div, .cmd .prompt {
+    font-family: Roboto Mono;
+    font-size: 20px;
+    line-height: 24px;
+}
+

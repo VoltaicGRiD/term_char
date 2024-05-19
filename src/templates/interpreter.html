@@ -1,0 +1,192 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>JSON-RPC Demo for JQuery Terminal Emulator</title>
+    <meta name="author" content="Jakub Jankiewicz - jcubic&#64;onet.pl"/>
+    <meta name="Description" content="Demonstration for JQuery Terminal Emulator using call automaticly JSON-RPC service (in php) with authentication."/>
+    <script src="https://cdn.jsdelivr.net/npm/jquery"></script>
+    <script src="../static/js/jquery.terminal.min.js"></script>
+    <link href="../static/css/jquery.terminal.min.css" rel="stylesheet"/>
+    <link href="../static/css/charterm.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/js-polyfills/keyboard.js"></script>
+    <script src="../static/js/charterm.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content"/>
+  </head>
+<body>
+    <div class="bodycontent" id="bodycontent">
+
+    </div>
+    <div class="popout" id="popout">
+
+    </div>
+<script>
+var term;
+
+jQuery(function($) {
+    var id = 1;
+    term = $('#bodycontent').terminal(function(command, instance) {
+        parseCommand(command, instance)
+
+        // command = command.toLowerCase()
+        // var input = document.createElement('input');
+        // if (command == 'load') {
+        //     input.type = 'file';
+        //     input.onchange = e => { 
+        //         // getting a hold of the file reference
+        //         var file = e.target.files[0]; 
+        //
+        //         // setting up the reader
+        //         var reader = new FileReader();
+        //         reader.readAsText(file,'UTF-8');
+        //
+        //         // here we tell the reader what to do when it's done reading...
+        //         reader.onload = readerEvent => {
+        //             var content = readerEvent.target.result; // this is the content!
+        //             $.ajax({
+        //                 type: 'POST',
+        //                 url: '/load',
+        //                 data: JSON.stringify(content, null, '\t'),
+        //                 contentType: 'application/json;charset=UTF-8'
+        //             });
+        //         }
+        //     }
+        //     input.click();
+        // } else if (command == 'save') {
+        //     $.ajax({
+        //         dataType: 'json',
+        //         url: '/save',
+        //         context: document.body
+        //     }).done(function(data) {
+        //         term.echo(data.response);
+        //     }).fail(function(jqXHR, textStatus, errorThrown) {
+        //         term.echo('Error Code: ' + jqXHR.status);
+        //         term.echo('Error: ' + errorThrown);
+        //     })
+        // } else if (command == 'cls' || command == "clear") {
+        //     term.clear();
+        // } else if (command.startsWith("wm") || command.startsWith("wildmagic")) {
+        //     $.ajax({
+        //         dataType: 'json',
+        //         url: '/wildmagic',
+        //         context: document.body
+        //     }).done(function(data) {
+        //         term.echo(data.response);
+        //     }).fail(function(jqXHR, textStatus, errorThrown) {
+        //         term.echo('Error Code: ' + jqXHR.status);
+        //         term.echo('Error: ' + errorThrown);
+        //     })
+        // } else if (command == 'create') {
+        //     checkCreate(command)
+        //     $.ajax({
+        //         dataType: 'json',
+        //         url: '/wildmagic',
+        //         context: document.body
+        //     }).done(function(data) {
+        //         term.echo(data.response);
+        //     }).fail(function(jqXHR, textStatus, errorThrown) {
+        //         term.echo('Error Code: ' + jqXHR.status);
+        //         term.echo('Error: ' + errorThrown);
+        //     })
+        //
+        //     // $('#bodycontent').css("filter", "blur(2px)")
+        //     // $('#popout').css("display", "flex")
+        //     // $('#popout').css("border", "flex")
+        //     // let charIndex = 0;
+        //     // var charName = "";
+        //     // var charSpecies = "";
+        //     // var charAge = "";
+        //     // var charHeight = "";
+        //     // var charWeight = "";
+        //     // charterm = $('#popout').terminal(function(newcommand, charterm) {
+        //     //     if (newcommand == "back") {
+        //     //         if (charIndex > 0) {
+        //     //             charIndex--;
+        //     //         }
+        //     //         switch ( charIndex ) {
+        //     //             case 0:
+        //     //                 charterm.set_prompt("[[;white;;] name    > ]");
+        //     //                 break;
+        //     //             case 1:
+        //     //                 charterm.set_prompt("[[;white;;] species > ]");
+        //     //                 break;
+        //     //             case 2:
+        //     //                 charterm.set_prompt("[[;white;;] age     > ]");
+        //     //                 break;
+        //     //             case 3:
+        //     //                 charterm.set_prompt("[[;white;;] height  > ]");
+        //     //                 break;
+        //     //             case 4:
+        //     //                 charterm.set_prompt("[[;white;;] weight  > ]");
+        //     //                 break;
+        //     //             default: 
+        //     //                 break;
+        //     //         }
+        //     //     }
+        //     //     else {
+        //     //         switch ( charIndex ) {
+        //     //             case 0:
+        //     //                 charName = newcommand;
+        //     //                 charterm.set_prompt("[[;white;;] species > ]");
+        //     //                 charIndex++;
+        //     //                 break;
+        //     //             case 1:
+        //     //                 charSpecies = newcommand;
+        //     //                 charterm.set_prompt("[[;white;;] age     > ]");
+        //     //                 charIndex++;
+        //     //                 break;
+        //     //             case 2:
+        //     //                 charAge = newcommand;
+        //     //                 charterm.set_prompt("[[;white;;] height  > ]");
+        //     //                 charIndex++;
+        //     //                 break;
+        //     //             case 3:
+        //     //                 charHeight = newcommand;
+        //     //                 charterm.set_prompt("[[;white;;] weight  > ]");
+        //     //                 charIndex++;
+        //     //                 break;
+        //     //             default: 
+        //     //                 charWeight = newcommand;
+        //     //                 $('#popout').css("display", "none")
+        //     //                 $('#bodycontent').css("filter", "blur(0px)")
+        //     //                 term.echo("Creating " + charName + ". They are a(n) " + charSpecies + ", that is " + charAge + " years old, and " + charHeight + " " + charWeight);
+        //     //                 term.focus();
+        //     //                 break;
+        //     //         }
+        //     //     }
+        //     // }, {
+        //     //     greetings: "Creating a new character... please fill in the information (type 'back' to go back)",
+        //     //     prompt: "[[;white;;] name    > ]"
+        //     // });
+        // } else if (command.startsWith('mc')) {
+        //     $.ajax({
+        //         dataType: 'json',
+        //         url: '/mycharacter/' + command,
+        //         context: document.body
+        //     }).done(function(data) {
+        //         term.echo(data.response);
+        //     }).fail(function(jqXHR, textStatus, errorThrown) {
+        //         term.echo('Error Code: ' + jqXHR.status);
+        //         term.echo('Error: ' + errorThrown);
+        //     })
+        // } else if (command.startsWith('roll')) {
+        //     $.ajax({
+        //         dataType: 'json',
+        //         url: '/roll/' + command,
+        //         context: document.body
+        //     }).done(function(data) {
+        //         term.echo(data.response);
+        //     }).fail(function(jqXHR, textStatus, errorThrown) {
+        //         term.echo('Error Code: ' + jqXHR.status);
+        //         term.echo('Error: ' + errorThrown);
+        //     })
+        // } else {
+        // }
+    }, {
+        greetings: "'mc' to access your character"
+    });
+});
+
+</script>
+</body>
+</html>

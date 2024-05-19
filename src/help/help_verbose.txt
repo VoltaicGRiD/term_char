@@ -1,0 +1,70 @@
+
+[[;white;;]-=-=-=-=-=-=-=- MY CHARACTER -=-=-=-=-=-=-=-]
+'mc' short for 'my character' references commands used to modify and update your character:\n
+The following commands are available:
+
+Add something to a character
+    [[;white;;]mc add res(ource) <name> <alias> <value> <max> (change) (auto_reset)]
+        Add [[b;lime;;]resource] 
+            Examples: 
+                - spell slots 
+                - ammo 
+                - components
+    [[;white;;]mc add co(unt) <name> <alias> (change) (auto_reset)]
+        Add [[b;cyan;;]counter] 
+            Examples: 
+                - spells cast
+                - accumulated damage
+                - enemies made
+    [[;white;;]mc add attr(ibute) <name> <alias> <roll> <stat>]
+        Add [[b;orange;;]attribute]
+            Examples: 
+                - strength
+                - stealth 
+                - fortitude save
+
+Get something from a chracter
+    [[;white;;]mc get <alias>]
+        The output given differs based on the type of data the alias is referencing
+            If alias references a [[b;lime;;]resource], will return:
+                - current value
+                - max value
+                - auto-reset setting
+                - change setting
+            If alias references a [[b;cyan;;]counter], will return:
+                - current value
+                - auto-reset setting
+                - change setting
+            If alias references an [[b;orange;;]attribute], will return:
+                - roll setting
+                - current stat
+    [[;white;;]mc get --resources]
+    [[;white;;]mc get -r]
+        Will output all [[b;lime;;]resources] and their respective data
+    [[;white;;]mc get --counters]
+    [[;white;;]mc get -c]
+        Will output all [[b;cyan;;]counters] and their respective data
+    [[;white;;]mc get --attributes]
+    [[;white;;]mc get -a]
+        Will output all [[b;orange;;]attributes] and their respective data
+
+Update a character
+    [[;white;;]mc update <alias>]
+
+Reset [[b;cyan;;]counters] and [[b;lime;;]resources]
+    Force reset [[b;cyan;;]counters] and [[b;lime;;]resources]
+        [[;white;;]mc reset --force]
+        [[;white;;]mc reset -f]
+            [[b;red;;]All] counters and resources will be reset.
+    
+    Reset [[b;yellow;;]auto-reset] [[b;cyan;;]counters] and [[b;lime;;]resources]
+        [[;white;;]mc reset]
+        [[;white;;]mc sleep]
+        [[;white;;]mc rest]
+            Counters and/or resources that are not marked as [[b;yellow;;]auto-reset] 
+              will not be reset, and must be reset manually.
+
+    Reset a specific [[b;cyan;;]counter] or [[b;lime;;]resource]
+        [[;white;;]mc reset <alias>]
+[[;white;;]-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=]
+
