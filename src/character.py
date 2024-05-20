@@ -1,7 +1,10 @@
+from datetime import datetime
 import sys
-
+import re
+import itertools
 
 from pydantic import BaseModel
+import src.extras as extras
 
 
 # An attribute is a characters stats typically.
@@ -11,7 +14,8 @@ class Attribute(BaseModel):
     name: str
     alias: str
     roll: str
-    stat: float
+    stat: int
+    mod: int = 0
 
 
 # A counter is a resource that tracks incrementally.
@@ -69,12 +73,153 @@ class CharacterData(BaseModel):
     armor: int = 0
 
 
+class Quest(BaseModel):
+    name: str = ""
+    giver: str = ""
+    objective: str = ""
+    due: str | int = ""
+    outcome: str = ""
+
+
+class Note(BaseModel):
+    name: str
+    date: datetime = datetime.today()
+    note: str = ""
+
+
+class Ability(BaseModel):
+    name: str
+    alias: str
+    roll: str
+    type: str
+
+
 class Character(BaseModel):
     extra_data: dict = {}
     base_data: CharacterData = CharacterData()
     attributes: list[Attribute] = []
     resources: list[Resource] = []
     counters: list[Counter] = []
+    quests: list[Quest] = []
+    notes: list[Note] = []
+    abilities: list[Ability] = []
+
+    def note_append(self, name, value):
+        for note in self.notes:
+            if note.name == name:
+                note.note = note.note + "\n\n" + value
+                return note
+
+    def note_get(self, name):
+        for note in self.notes:
+            if note.name == name:
+                return note
+
+    def note_delete(self, name):
+        remove_index = -1
+        for index, note in enumerate(self.notes):
+            if note.name == name:
+                remove_index = index
+
+        if remove_index > -1:
+            self.notes.pop(remove_index)
+            return True
+        return False
+
+    def note_select(self, name):
+        for note in self.notes:
+            if note.name == name:
+                return note
+
+        return None
+
+    def note_new(self, note: Note):
+        self.notes.append(note)
+        return note
+
+    def note_mode(self, new_note: Note):
+        if len(self.notes) > 0:
+            for note in self.notes:
+                if note.name == new_note.name:
+                    note = new_note
+                    return "Note found and replaced"
+        else:
+            self.notes.append(new_note)
+            print(self.notes)
+            return "New note created on character"
+
+    def quest_update(self, name, attr, value):
+        for quest in self.quests:
+            if name in quest.name:
+                setattr(quest, attr, value)
+                return quest
+
+    def quest_new(self, quest: Quest):
+        self.quests.append(quest)
+        return quest
+
+    def ability_roll(self, alias):
+        pattern = "((?>@)([0-9a-zA-Z]+).([0-9a-zA-Z]+))"
+
+        for ability in self.abilities:
+            if ability.alias == alias or ability.name == alias:
+                roll_str = ability.roll
+                matches = re.findall(pattern, ability.roll)
+                if len(matches) > 0:
+                    for match in matches:
+                        full_match = match[0]
+                        roll_alias = match[1]
+                        roll_stat = match[2]
+                        print(roll_alias)
+                        print(roll_stat)
+
+                        roll_data = self.get_roll_data(roll_alias, roll_stat)
+                        print(roll_data)
+
+                        roll_str = roll_str.replace(full_match, roll_data)
+
+                print(roll_str)
+                result = roll(roll_str)
+
+                return result
+
+    def get_roll_data(self, roll_str):
+        pattern = "((?>@)([0-9a-zA-Z]+).([0-9a-zA-Z]+))"
+        matches = re.findall(pattern, roll_str)
+        if len(matches) > 0:
+            for match in matches:
+                full_match = match[0]
+                roll_alias = match[1]
+                roll_stat = match[2]
+
+                lists = [self.abilities, self.attributes, self.resources, self.counters]
+                all = itertools.chain(*lists)
+
+                roll_data = 0
+                for ele in all:
+                    if ele.alias and ele.alias == roll_alias:
+                        try:
+                            roll_data = getattr(ele, roll_stat)
+                        except AttributeError:
+                            pass
+
+                print(roll_data)
+
+                roll_out, _ = extras.roll(str(roll_data))
+                print(roll_out)
+                roll_str = roll_str.replace(full_match, str(roll_out))
+
+        return roll_str
+
+    def ability_update(self, name, attr, value):
+        for ability in self.abilities:
+            if name in ability.name:
+                setattr(ability, attr, value)
+                return ability
+
+    def ability_new(self, ability: Ability):
+        self.abilities.append(ability)
+        return ability
 
     def reset(self):
         for res in self.resources:
@@ -83,11 +228,14 @@ class Character(BaseModel):
         for counter in self.counters:
             counter.reset()
 
-    def add_attr(self, attr: Attribute):
+    def attribute_add(self, attr: Attribute):
         self.attributes.append(attr)
 
-    def add_resource(self, res: Resource):
+    def resource_add(self, res: Resource):
         self.resources.append(res)
+
+    def counter_add(self, cou: Counter):
+        self.counters.append(cou)
 
     def use(self, alias: str):
         for ele in self.resources:
@@ -104,24 +252,11 @@ class Character(BaseModel):
         return previous_health, health
 
     def update(self, alias, attr, value):
-        for ele in self.resources:
-            if alias in ele.alias:
-                try:
-                    if getattr(ele, attr) is not None:
-                        setattr(ele, attr, value)
-                        return ele
-                except AttributeError:
-                    continue
-        for ele in self.counters:
-            if alias in ele.alias:
-                try:
-                    if getattr(ele, attr) is not None:
-                        setattr(ele, attr, value)
-                        return ele
-                except AttributeError:
-                    continue
-        for ele in self.attributes:
-            if alias in ele.alias:
+        lists = [self.abilities, self.attributes, self.resources, self.counters]
+        all = itertools.chain(*lists)
+
+        for ele in all:
+            if ele.alias and ele.alias == alias:
                 try:
                     if getattr(ele, attr) is not None:
                         setattr(ele, attr, value)
@@ -134,14 +269,11 @@ class Character(BaseModel):
         return self.base_data
 
     def get(self, alias: str):
-        for ele in self.resources:
-            if alias in ele.alias:
-                return ele
-        for ele in self.counters:
-            if alias in ele.alias:
-                return ele
-        for ele in self.attributes:
-            if alias in ele.alias:
+        lists = [self.abilities, self.attributes, self.resources, self.counters]
+        all = itertools.chain(*lists)
+
+        for ele in all:
+            if ele.alias and ele.alias == alias:
                 return ele
 
         for key, value in self.extra_data.items():
@@ -151,12 +283,11 @@ class Character(BaseModel):
         return None
 
     def _check_aliases(self, alias: str):
-        for attr in self.attrs:
-            if attr.alias == alias:
-                return False
+        lists = [self.abilities, self.attributes, self.resources, self.counters]
+        all = itertools.chain(*lists)
 
-        for res in self.resources:
-            if res.alias == alias:
+        for ele in all:
+            if ele.alias and ele.alias == alias:
                 return False
 
         return True

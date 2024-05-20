@@ -47,7 +47,9 @@ def wild_magic():
 
 
 def roll(roll_str: str):
-    result = dice.roll_dice(roll_str)
+    result, explanation = dice.roll_dice(roll_str)
+
+    return result, explanation
 
     if isinstance(result, list):
         formatted = f"{sum(result)} | {result}"
