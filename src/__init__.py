@@ -7,6 +7,7 @@ from flask import Flask, Response, jsonify, render_template, request, session
 from dotenv import load_dotenv, dotenv_values
 
 from src.character import Attribute, Character, CharacterData, Quest, Resource, Note
+import src.commands.distributor as dist
 import src.extras as extras
 
 load_dotenv()
@@ -118,29 +119,9 @@ def my_character():
     main = arguments[0]
     args = arguments[1:]
 
-    messages = []
-
-    if main == "help":
-        help_text = ""
-        with open("src/help/help_verbose.txt", "r") as f:
-            help_text = f.read()
-        data = {"response": help_text}
-        return jsonify(data)
-
-    try:
-        json_data = session["character"]
-        character: Character = Character.parse_raw(json_data)
-    except KeyError as kexc:
-        messages.append("No character selected or loaded. Creating a new one.")
-        messages.append("\tNew character name: [[;white;;]'John Doe']")
-        char = Character()
-        character_data = CharacterData(name="John Doe")
-        char.base_data = character_data
-        character = char
-
     if main == "new":
         try:
-            if session["save_warning"] == 1:
+            if session["save_warning"] == 1 and char:
                 messages.append("Character data wiped. Creating a new one.")
                 messages.append("\tNew character name: [[;white;;]'John Doe']")
                 char = Character()
@@ -158,14 +139,33 @@ def my_character():
     else:
         try:
             session.pop("save_warning")
+            try:
+                json_data = session["character"]
+                character: Character = Character.parse_raw(json_data)
+            except KeyError as kexc:
+                messages.append("No character selected or loaded. Creating a new one.")
+                messages.append("\tNew character name: [[;white;;]'John Doe']")
+                char = Character()
+                character_data = CharacterData(name="John Doe")
+                char.base_data = character_data
+                character = char
+
         except KeyError:
             pass
 
-    if main == "add":
+    messages = []
+    dist.distribute(main, args, character, messages)
 
+    if main == "help":
+        help_text = ""
+        with open("src/help/help_verbose.txt", "r") as f:
+            help_text = f.read()
+        data = {"response": help_text}
+        return jsonify(data)
+
+    if main == "add":
         # ---- Adding an attribute ----
         if args[0] == "attr" or args[0] == "attribute":
-
             name = args[1]
             alias = args[2]
             roll = args[3]

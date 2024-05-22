@@ -1,5 +1,4 @@
 import json
-import re
 
 from flask import jsonify
 import rolldice as dice
@@ -15,7 +14,7 @@ def wild_magic():
 
         for expr in dur.split(" "):
             try:
-                roll, expl = dice.roll_dice(expr)
+                roll, _ = dice.roll_dice(expr)
                 val = f"[[;gray;;]{{{expr}}}] [[b;orange;;]{str(roll)}]"
                 dur = dur.replace(expr, val)
             except dice.DiceGroupException:
@@ -30,7 +29,7 @@ def wild_magic():
 
         for expr in effect.split(" "):
             try:
-                roll, expl = dice.roll_dice(expr)
+                roll, _ = dice.roll_dice(expr)
                 val = f"[[;gray;;]{{{expr}}}] [[b;orange;;]{str(roll)}]"
                 effect = effect.replace(expr, val)
             except dice.DiceGroupException as exc:
@@ -46,16 +45,19 @@ def wild_magic():
         return jsonify(response)
 
 
-def roll(roll_str: str):
+def roll(roll_str: str) -> tuple[int, str]:
     result, explanation = dice.roll_dice(roll_str)
 
     return result, explanation
 
-    if isinstance(result, list):
-        formatted = f"{sum(result)} | {result}"
-        data = {"response": formatted}
 
-    else:
-        data = {"response": result}
+def roll_table(options: list[str], count=1) -> list[str]:
+    size = len(options)
+    dice_str = f"1d{size}"
+    results: list[str] = []
 
-    return jsonify(data)
+    for _ in range(count):
+        result, _ = roll(dice_str)
+        results.append(options[result])
+
+    return results
